@@ -1,3 +1,30 @@
+<h1 align='center' style="text-align:center; font-weight:bold; font-size:2.0em;letter-spacing:2.0px;"> <em>GenARM</em> : Reward Guided Generation with Autoregressive Reward Model for Test-Time Alignment </h1>
+<p align='center' style="text-align:center;font-size:1.25em;">
+    <a href="https://yuancheng-xu.github.io" target="_blank" style="text-decoration: none;">Yuancheng Xu</a><sup>1</sup>&nbsp;,&nbsp;
+    <a href="https://udarimadhu.github.io" target="_blank" style="text-decoration: none;">Udari Madhushani Sehwag</a><sup>2</sup>&nbsp;,&nbsp;
+    <a href="https://koppel.netlify.app" target="_blank" style="text-decoration: none;">Alec Koppel</a><sup>2</sup>&nbsp;,&nbsp;
+  <a href="https://schzhu.github.io" target="_blank" style="text-decoration: none;">Sicheng Zhu</a><sup>1</sup>&nbsp;,&nbsp;
+    <a href="https://bangann.github.io" target="_blank" style="text-decoration: none;">Bang An</a><sup>1</sup>&nbsp;,&nbsp;
+    <a href="https://furong-huang.com" target="_blank" style="text-decoration: none;">Furong Huang</a><sup>1</sup>&nbsp;&nbsp; 
+    <a href="https://www.jpmorgan.com/technology/artificial-intelligence/about/sumitra-ganesh" target="_blank" style="text-decoration: none;">Sumitra Ganesh</a><sup>2</sup>&nbsp;&nbsp; 
+    <br/> 
+<sup>1</sup>University of Maryland, College Park&nbsp;&nbsp;&nbsp;&nbsp;<sup>2</sup>JPMorgan AI Research<br>
+<br>ICLR, 2025</span>
+</p>
+
+<p align='center' style="text-align:center;font-size:2.5 em;">
+<b>
+    <a href="https://arxiv.org/abs/2410.08193" target="_blank" style="text-decoration: none;">Paper</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    <a href="https://genarm.github.io" target="_blank" style="text-decoration: none;">Project Page</a>
+</b>
+</p>
+
+---
+
+**Overview: <em>GenARM</em> uses an autoregressive reward model to efficiently guide a base LLM for test-time alignment, outperforming prior methods and enabling weak-to-strong guidance and multi-objective alignment.**
+
+![](assets/demo_main.png)
+
 # Installation
 
 Our codebase is based on [TRL](https://huggingface.co/docs/trl/index) for training and [Model_Arithmetic](https://github.com/eth-sri/language-model-arithmetic) for inference. Run the following to set up the environment:
