@@ -1,0 +1,2 @@
+,win_rate,standard_error,mode,avg_length,n_wins,n_wins_base,n_draws,n_total,discrete_win_rate,length_controlled_winrate,lc_standard_error
+Base-tulu-2-7b-ARM--alpha_1-temp_1,43.72670807453416,1.7272090935106934,community,779,342,443,20,805,43.72670807453416,46.99622639578939,0.08208056938389621

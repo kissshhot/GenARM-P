@@ -90,15 +90,16 @@ def clean(text, sep="###"):
 #     return 
 
 def gpt4_eval(sys_prompt: str, user_prompt: str) -> str:
-        
+
     client = OpenAI(
         api_key=os.environ.get("OPENAI_API_KEY"),
+        base_url=os.environ.get("OPENAI_BASE_URL"),
     )
         
     while True:
         try:
             response = client.chat.completions.create(
-                model="gpt-4",
+                model="deepseek-chat",
                 messages=[
                     {"role": "system", "content": sys_prompt},
                     {

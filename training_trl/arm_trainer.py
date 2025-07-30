@@ -12,6 +12,8 @@ class ARMTrainer(DPOTrainer):
 
         self.gamma = training_args.gamma # target_reward_margin
         self.length_normalization = training_args.length_normalization
+        # self.joint_training = training_args.joint_training
+        # self.alpha = training_args.alpha
 
         if self.length_normalization:
             print('\nUsing length normalization. This is not default for training Autoregressive RM and should only be used for testing purposes!\n')
@@ -56,6 +58,40 @@ class ARMTrainer(DPOTrainer):
 
         return losses, chosen_rewards, rejected_rewards
     
+    @staticmethod
+    def get_batch_logps(
+        logits: torch.FloatTensor,
+        labels: torch.LongTensor,
+        label_pad_token_id: int = -100,
+        is_encoder_decoder: bool = False,
+    ) -> Tuple[torch.FloatTensor, torch.LongTensor]:
+        """Compute the log probabilities of the given labels under the given logits.
+
+        Args:
+            logits: Logits of the model (unnormalized). Shape: (batch_size, sequence_length, vocab_size)
+            labels: Labels for which to compute the log probabilities. Label tokens with a value of label_pad_token_id are ignored. Shape: (batch_size, sequence_length)
+            label_pad_token_id: The label pad token id.
+            is_encoder_decoder: Whether the model is an encoder-decoder model.
+
+        Returns:
+            A Tuple of two tensor of shape ((batch_size,), (batch_size,)) containing the sum of log probabilities of the given labels under the given logits in the first tensor and the number of non-masked tokens in the second tensor.
+        """
+        if logits.shape[:-1] != labels.shape:
+            raise ValueError("Logits (batch and sequence length dim) and labels must have the same shape.")
+
+        if not is_encoder_decoder:
+            labels = labels[:, 1:].clone()
+            logits = logits[:, :-1, :]
+        loss_mask = labels != label_pad_token_id
+
+        # dummy token; we'll ignore the losses on these tokens later
+        labels[labels == label_pad_token_id] = 0
+
+        per_token_logps = torch.gather(logits.log_softmax(-1), dim=2, index=labels.unsqueeze(2)).squeeze(2)
+
+        # return (per_token_logps * loss_mask).sum(-1), loss_mask.sum(-1)
+        return per_token_logps, loss_mask
+    
     def concatenated_forward(
         self, model: nn.Module, batch: Dict[str, Union[List, torch.LongTensor]]
     ) -> Tuple[torch.FloatTensor, torch.FloatTensor, torch.FloatTensor, torch.FloatTensor]:
@@ -88,12 +124,41 @@ class ARMTrainer(DPOTrainer):
             **model_kwargs,
         ).logits
 
-        all_logps, valid_length = self.get_batch_logps(
+        # Get reward model logps
+        per_token_logps, loss_mask = self.get_batch_logps(
             all_logits,
             concatenated_batch["concatenated_labels"],
             is_encoder_decoder=self.is_encoder_decoder,
             label_pad_token_id=self.label_pad_token_id,
         )
+        # print(self.model)
+        # import pdb
+        # pdb.set_trace()
+        self.joint_training = True
+        self.alpha = 1.5
+        if self.joint_training:
+            # Get base model logps
+            # self.model.disable_adapters()
+            with self.model.disable_adapter():
+                base_all_logits = self.model(
+                    concatenated_batch["concatenated_input_ids"],
+                    attention_mask=concatenated_batch["concatenated_attention_mask"],
+                    use_cache=False,
+                    **model_kwargs,
+                ).logits
+                base_per_token_logps, loss_mask = self.get_batch_logps(
+                    base_all_logits,
+                    concatenated_batch["concatenated_labels"],
+                    is_encoder_decoder=self.is_encoder_decoder,
+                    label_pad_token_id=self.label_pad_token_id,
+                )
+            combined_per_token_logps = base_per_token_logps + self.alpha * per_token_logps
+            all_logps = (combined_per_token_logps * loss_mask).sum(-1)
+            # self.model.enable_adapters()
+        else:
+            all_logps = (per_token_logps * loss_mask).sum(-1)
+
+        valid_length = loss_mask.sum(-1)
         if self.length_normalization:
             all_logps = all_logps / valid_length
 

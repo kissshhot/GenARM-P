@@ -1,13 +1,13 @@
-cuda=0,1
+cuda=6,7
 
 ### Case 1: GenARM: model_base + alpha * autoregressive RM
-model_base=allenai/tulu-2-7b # some choices: allenai/tulu-2-7b, TheBloke/tulu-2-13B-GPTQ, TheBloke/tulu-2-70B-GPTQ, allenai/tulu-2-13b, allenai/tulu-2-70b
-model_arm=Provide_The_Path_For_AutoregressiveRM 
+model_base=/data1/dyf/model/tulu-2-7b # some choices: allenai/tulu-2-7b, TheBloke/tulu-2-13B-GPTQ, TheBloke/tulu-2-70B-GPTQ, allenai/tulu-2-13b, allenai/tulu-2-70b
+model_arm=/data1/dyf/GenARM/checkpoints/HH/arm/tulu_2_alpha_1.5_debug_UB-arm-HH-epoch_1-gamma_0.5-beta_1.0-lr_2e-4-bs_32/
 alpha_arm=1 # the weight for the autoregressive RM
 temperature=1 # for GenARM, the temperature input to model_arithmetic is temperature/(1 + alpha_arm) 
 
 ### Case 2: evaluation single model without guided decoding
-# model_base=allenai/tulu-2-dpo-7b # some choices: allenai/tulu-2-7b, allenai/tulu-2-dpo-7b, TheBloke/tulu-2-13B-GPTQ, TheBloke/tulu-2-dpo-13B-GPTQ, TheBloke/tulu-2-70B-GPTQ, TheBloke/tulu-2-dpo-70B-GPTQ, allenai/tulu-2-13b, allenai/tulu-2-70b
+# model_base=/data1/dyf/model/tulu-2-7b # some choices: allenai/tulu-2-7b, allenai/tulu-2-dpo-7b, TheBloke/tulu-2-13B-GPTQ, TheBloke/tulu-2-dpo-13B-GPTQ, TheBloke/tulu-2-70B-GPTQ, TheBloke/tulu-2-dpo-70B-GPTQ, allenai/tulu-2-13b, allenai/tulu-2-70b
 # model_arm=none
 # alpha_arm=0 
 # temperature=0 # default = 0 in AlpacaEval2.0
@@ -16,7 +16,7 @@ temperature=1 # for GenARM, the temperature input to model_arithmetic is tempera
 max_new_tokens=7500 # default for tulu2
 top_p=1 
 
-output_dir=./AlpacaEval_results/model_generation/
+output_dir=./AlpacaEval_results/model_generation/lr-2e-4/
 # the json file will be saved to output_dir/model_save_name.json
 if [ "$model_arm" = "none" ] || [ $(echo "$alpha_arm == 0" | bc) -eq 1 ]; then
     model_save_name=${model_base##*/}-temp_$temperature # get the last part of the model name

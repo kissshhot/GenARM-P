@@ -78,6 +78,7 @@ class ModelArithmetic(PreTrainedModel):
         self.config = self.loaded_models[str(self.default_model)].config
         if tokenizer is None:
             if hasattr(self.config, "_name_or_path"):
+                print(self.config)
                 self.tokenizer = load_tokenizer(self.config._name_or_path)
             else:
                 self.tokenizer = load_tokenizer(self.default_model)

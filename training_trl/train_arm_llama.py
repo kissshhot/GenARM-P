@@ -5,6 +5,7 @@ Due to data processing steps (data format and model template), this script only 
 For other dataset and models, we need to modify the data processing steps.
 '''
 import os
+# os.environ["WANDB_MODE"] = "offline"
 from dataclasses import dataclass, field
 from typing import Dict, Optional
 import torch
@@ -14,6 +15,9 @@ from peft import LoraConfig
 from transformers import AutoModelForCausalLM, AutoTokenizer, set_seed
 from trl import DPOTrainer, DPOConfig
 from trl.commands.cli_utils import TrlParser
+# export WANDB_BASE_URL="https://api.bandw.top"
+# export WANDB_API_KEY="1256ddbd43ad5b80120e446f3105c432bc9a88aa"
+# export WANDB_PROJECT="wandb-test"
 
 from arm_trainer import ARMTrainer
 
@@ -214,14 +218,76 @@ def get_PKU_SafeRLHF(
         remove_columns=original_columns,
     )
 
+def get_UB_RLHF(
+    split: str = "train",
+    sanity_check: bool = False,
+    num_proc=4,
+) -> Dataset:
+    """Load the HH-RLHF dataset "Dahoas/full-hh-rlhf" from Hugging Face and convert it to the necessary format.
 
+    The dataset is converted to a dictionary with the following structure:
+    {
+        'prompt': List[str],
+        'chosen': List[str],
+        'rejected': List[str],
+    }
+    """ 
+    dataset = load_dataset(
+        "HuggingFaceH4/ultrafeedback_binarized",
+        split=split,
+        use_auth_token=True,
+        num_proc=num_proc,
+    )
+    original_columns = dataset.column_names
+
+    if sanity_check:
+        dataset = dataset.select(range(min(len(dataset), 1000)))
+
+    # def res_format()
+
+    def return_prompt_and_responses(batch) -> Dict[str, str]:
+        chosen = []
+        for item in batch["chosen"]:
+            if isinstance(item, list) and len(item) >= 2:
+                chosen.append(item[1].get("content", None))
+                # print(chosen[0])
+                # import pdb
+                # pdb.set_trace()
+            else:
+                chosen.append(None)
+                # print(item)
+        batch["chosen"] = chosen
+
+        # 处理 "rejected" 字段
+        rejected = []
+        for item in batch["rejected"]:
+            if isinstance(item, list) and len(item) >= 2:
+                rejected.append(item[1].get("content", None))
+            else:
+                rejected.append(None)
+        batch["rejected"] = rejected
+
+        return batch
+        # print(sample["chosen"][1]['content'])
+        # return {
+        #     "prompt": sample["prompt"],
+        #     "chosen": sample["chosen"][1]['content'],
+        #     "rejected": sample["rejected"][1]['content'],
+        # }
+    # return_prompt_and_responses_with_version = lambda x: return_prompt_and_responses(x)
+    return dataset.map(
+        return_prompt_and_responses,
+        batched=True,
+        num_proc=num_proc,
+        # remove_columns=original_columns,
+    )
 
 if __name__ == "__main__":
 
     parser = TrlParser((ScriptArguments, ARMConfig))
     script_args, training_args = parser.parse_args_and_config()
 
-    assert script_args.preference_dataset in ["HH_RLHF", "PKU_SafeRLHF_Harmlessness", "PKU_SafeRLHF_Helpfulness"], f"Invalid preference dataset: {script_args.preference_dataset}"
+    assert script_args.preference_dataset in ["HH_RLHF", "PKU_SafeRLHF_Harmlessness", "PKU_SafeRLHF_Helpfulness", "ultrafeedback_binarized"], f"Invalid preference dataset: {script_args.preference_dataset}"
     print(f'\nPreference dataset: {script_args.preference_dataset}\n')
 
     if script_args.algorithm == "arm":
@@ -243,6 +309,9 @@ if __name__ == "__main__":
         eval_dataset = get_HH_RLHF(split="test", sanity_check=True)
     elif script_args.preference_dataset in ["PKU_SafeRLHF_Harmlessness", "PKU_SafeRLHF_Helpfulness"]:
         train_dataset, eval_dataset = get_PKU_SafeRLHF(dataset_name=script_args.preference_dataset, sanity_check=script_args.sanity_check)
+    elif script_args.preference_dataset in ["ultrafeedback_binarized"]:
+        train_dataset = get_UB_RLHF(split="train_prefs", sanity_check=script_args.sanity_check) 
+        eval_dataset = get_UB_RLHF(split="test_prefs", sanity_check=True)
     else:
         raise ValueError(f"Invalid preference dataset: {script_args.preference_dataset}")
 
@@ -301,7 +370,8 @@ if __name__ == "__main__":
         bias="none",
         task_type="CAUSAL_LM",
     )
-
+    # joint_training = True
+    # alpha = 0.5
     # 4. initialize the DPO/ARM trainer
     if script_args.algorithm == "arm":
         print('\n**********************************')
@@ -315,6 +385,8 @@ if __name__ == "__main__":
             eval_dataset=eval_dataset,
             tokenizer=tokenizer,
             peft_config=peft_config,
+            # joint_training = joint_training,
+            # alpha = alpha
         )
     else:
         print('\n**********************************')

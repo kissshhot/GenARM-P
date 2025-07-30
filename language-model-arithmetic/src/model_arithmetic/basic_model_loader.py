@@ -25,7 +25,8 @@ def load_tokenizer(dir_or_model):
     log(logger.debug, f"Loading tokenizer for {dir_or_model}")
 
     is_lora_dir = os.path.isfile(os.path.join(dir_or_model, "adapter_config.json"))
-
+    # import pdb
+    # pdb.set_trace()
     if is_lora_dir:
         loaded_json = json.load(open(os.path.join(dir_or_model, "adapter_config.json"), "r"))
         model_name = loaded_json["base_model_name_or_path"]
@@ -37,6 +38,7 @@ def load_tokenizer(dir_or_model):
         if "_name_or_path" in loaded_json:
             model_name = loaded_json["_name_or_path"]
 
+    # print(model_name)
     tokenizer = AutoTokenizer.from_pretrained(model_name)
 
     if tokenizer.pad_token is None:
