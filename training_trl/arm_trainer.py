@@ -134,8 +134,8 @@ class ARMTrainer(DPOTrainer):
         # print(self.model)
         # import pdb
         # pdb.set_trace()
-        self.joint_training = True
-        self.alpha = 1.5
+        self.joint_training = False
+        # self.alpha = 1.5
         if self.joint_training:
             # Get base model logps
             # self.model.disable_adapters()

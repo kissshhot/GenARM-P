@@ -320,9 +320,15 @@ def main(args: FlatArguments):
         return model
 
     model = load_model()
+    # import pdb
+    # pdb.set_trace()
     if not args.use_lora:
+        # import pdb
+        # pdb.set_trace()
         reference_model = load_model()
     else:
+        # import pdb
+        # pdb.set_trace()
         reference_model = model
 
     # no default pad token for llama!
@@ -378,6 +384,8 @@ def main(args: FlatArguments):
             model.resize_token_embeddings(len(tokenizer))
 
     if args.use_lora:
+        # import pdb
+        # pdb.set_trace()
         if args.use_qlora:
             model = prepare_model_for_kbit_training(model, use_gradient_checkpointing=args.gradient_checkpointing)
 
@@ -388,10 +396,20 @@ def main(args: FlatArguments):
             r=args.lora_rank,
             lora_alpha=args.lora_alpha,
             lora_dropout=args.lora_dropout,
-            target_modules=["q_proj", "o_proj", "v_proj", "k_proj", "gate_proj", "up_proj", "down_proj"],
+        target_modules=[
+            "q_proj",
+            "v_proj",
+            "k_proj",
+            "out_proj",
+            "fc_in",
+            "fc_out",
+            "wte",
+        ],
         )
         model = get_peft_model(model, peft_config)
         model.print_trainable_parameters()
+        # import pdb
+        # pdb.set_trace()
 
     # Preprocessing the datasets.
     ## The HuggingFaceH4/ultrafeedback_binarized has no "train" split, only "train_prefs" split.

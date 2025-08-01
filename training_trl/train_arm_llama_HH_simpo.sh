@@ -1,17 +1,17 @@
 export WANDB_BASE_URL="https://api.bandw.top"
 export WANDB_API_KEY="1256ddbd43ad5b80120e446f3105c432bc9a88aa"
 export WANDB_PROJECT="wandb-test"
-cuda=0,5
+cuda=6,7
 algorithm=arm # arm or dpo
 epoch=1
 beta=2.0 # for DPO, use beta=0.1, 默认是0.05
 gamma=1.0
-learning_rate=5e-5
+learning_rate=1e-4
 bs=32 # Total batch size, which is $per_device_train_batch_size * $gradient_accumulation_steps * $num_GPU
 per_device_train_batch_size=1 # Adjust according to your GPU memory
 
 model_name_or_path="/data1/dyf/model/tulu-2-7b" # sft model in the args paper
-model_name_script=tulu_2_alpha_1.5_debug_UB # GenARM_SimPO # only used for saving the model
+model_name_script=tulu_2_debug_UB_test # GenARM_SimPO # only used for saving the model
 
 ###### the following is automatically set
 num_GPU=$(echo $cuda | awk -F, '{print NF}')

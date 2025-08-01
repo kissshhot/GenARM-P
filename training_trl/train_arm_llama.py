@@ -316,11 +316,14 @@ if __name__ == "__main__":
         raise ValueError(f"Invalid preference dataset: {script_args.preference_dataset}")
 
     print(f'\nBefore filtering. Train data size: {train_dataset.num_rows}, Test data size: {eval_dataset.num_rows}\n')
-
+    print(len(train_dataset))
     train_dataset = train_dataset.filter(
         lambda x: len(x["prompt"]) + len(x["chosen"]) <= training_args.max_length
         and len(x["prompt"]) + len(x["rejected"]) <= training_args.max_length
     )
+    print(len(train_dataset))
+    import pdb
+    pdb.set_trace()
     eval_dataset = eval_dataset.filter(
         lambda x: len(x["prompt"]) + len(x["chosen"]) <= training_args.max_length
         and len(x["prompt"]) + len(x["rejected"]) <= training_args.max_length

@@ -1,0 +1,2 @@
+,win_rate,standard_error,mode,avg_length,n_wins,n_wins_base,n_draws,n_total,discrete_win_rate,length_controlled_winrate,lc_standard_error
+Base-tulu-2-7b-ARM-tulu_2_alpha_1.5_debug_UB-arm-HH-epoch_1-gamma_1.0-beta_2.0-lr_5e-5-bs_32-alpha_1-temp_1,45.27950310559007,1.7299988272654752,community,847,353,429,23,805,45.27950310559007,48.04036939108153,0.011080893131561095
